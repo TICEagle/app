@@ -1,0 +1,65 @@
+name: test
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CEDEV_URL: https://github.com/CE-Programming/toolchain/releases/download/v15.0/CEdev-Linux.tar.gz
+  CEDEV_SHA256: 85f4794a617b134249a9cba8a084414e86e16d2a68377b1d72ace30c636dbdf9
+  LWIP_URL: https://github.com/cagscalclabs/lwip-ce/releases/download/v3.2.3/lwip.zip
+  LWIP_SHA256: 60ed7b6afe42a27964c8aa83afee2b65cfa5eeafc3522a9cf6c9707fb7619d5f
+  CLANG_FORMAT_VERSION: 23.1.5
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Install the CE toolchain and lwIP-CE
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl -fsSL -o cedev.tar.gz "$CEDEV_URL"
+          curl -fsSL -o lwip.zip "$LWIP_URL"
+          echo "$CEDEV_SHA256  cedev.tar.gz" | sha256sum -c
+          echo "$LWIP_SHA256  lwip.zip" | sha256sum -c
+          tar xzf cedev.tar.gz
+          unzip -q lwip.zip
+          cp lwip/lwip.h lwip/cryptography.h lwip/parsers.h lwip/wireless.h CEdev/include/
+          mkdir -p CEdev/include/lwip
+          cp -r lwip/lwip/. CEdev/include/lwip/
+          cp lwip/lwip.lib CEdev/lib/libload/
+          echo "$RUNNER_TEMP/CEdev/bin" >> "$GITHUB_PATH"
+      - name: Build
+        run: |
+          make 2>&1 | tee "$RUNNER_TEMP/build.log"
+          make CEAGLE_TEST=1 OBJDIR=obj/test BINDIR=bin/test 2>&1 | tee -a "$RUNNER_TEMP/build.log"
+          if grep -i warning "$RUNNER_TEMP/build.log"; then exit 1; fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: CEAGLE
+          path: bin/CEAGLE.8xp
+          if-no-files-found: error
+
+  host:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libssl-dev
+      - name: Format
+        run: pipx run "clang-format==$CLANG_FORMAT_VERSION" --dry-run --Werror src/*.c src/*.h tests/host/*.c
+      - name: Unit tests
+        run: make -C tests/host
