@@ -1,3 +1,6 @@
 project = "ceagle"
 files   = ["bin/CEAGLE.8xp"]
 main    = "CEAGLE"
+
+[dependencies]
+lwip-ce = ">=3.2.3"
