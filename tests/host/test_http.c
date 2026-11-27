@@ -51,7 +51,7 @@ void test_http(void)
   CHECK(!http_server("http://a b", host, &port));
   CHECK(!http_server("http://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.cc", host, &port));
   CHECK(http_request(req, sizeof(req), "ceagle.cc", 80, "/api/v1/projects") &&
-        !strcmp(req, "GET /api/v1/projects HTTP/1.0\r\nHost: ceagle.cc\r\nUser-Agent: CEagle/1.0.0\r\n\r\n"));
+        !strcmp(req, "GET /api/v1/projects HTTP/1.0\r\nHost: ceagle.cc\r\nUser-Agent: CEagle/" APP_VERSION "\r\n\r\n"));
   CHECK(http_request(req, sizeof(req), "h", 8092, "/x") && strstr(req, "Host: h:8092\r\n"));
   CHECK(!http_request(req, 20, "h", 80, "/long/path/that/does/not/fit"));
 

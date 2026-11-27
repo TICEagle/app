@@ -2,6 +2,7 @@
 #define CEAGLE_API_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #include "db.h"
@@ -143,6 +144,7 @@ uint8_t cap_bit(const char *name);
 uint8_t kind_parse(const char *name);
 int version_compare(const char *a, const char *b);
 bool hex_decode(const char *hex, uint8_t *out, uint8_t max, uint8_t *length);
+void api_list_path(char *path, size_t size, uint16_t page, const char *kind, const char *category, const char *query);
 bool api_list(json_t *json, uint8_t event);
 bool api_detail(json_t *json, uint8_t event);
 bool api_install(json_t *json, uint8_t event);

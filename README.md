@@ -23,8 +23,9 @@ The five labels at the bottom of the screen belong to the five keys under the sc
 
 | Screen | Keys |
 | --- | --- |
-| Browse | up and down to choose, enter to open, y= to search, window to switch between All, BASIC, ASM/C, Libraries and AppVars, left and right for more pages, zoom (labelled Updates) for your installed projects, trace for settings, clear to quit |
+| Browse | up and down to choose, enter to open, y= to search, window to switch between All, BASIC, ASM/C, Libraries and AppVars, graph to pick a category (Games, Math, Science, Study, Programming, Graphics, Utilities, Other or All), left and right for more pages, zoom (labelled Updates) for your installed projects, trace for settings, clear to quit |
 | Project | enter to install or update, del to uninstall, clear to go back |
+| Category | up and down to choose, enter to show that category, clear to keep the one you had. It works together with the search and the kind |
 | Review | up and down to look through the projects an install needs, enter to install, clear to cancel |
 | Installed | enter to update the selected project, del to uninstall it, clear to go back |
 | Settings | up and down to choose, enter to change the server address or to turn pre-releases on and off |

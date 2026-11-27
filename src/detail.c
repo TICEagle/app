@@ -6,7 +6,8 @@
 #include "ui.h"
 #include "text.h"
 
-#define PATH_SIZE 64
+#define DETAIL_PATH "/api/v1/projects/%s?view=calculator"
+#define PATH_SIZE (sizeof(DETAIL_PATH) + SLUG_MAX)
 #define LINE_SIZE 64
 #define TITLE_Y 28
 #define CONTENT_W (UI_WIDTH - 2 * UI_PAD)
@@ -25,7 +26,7 @@ static bool load(const char *slug)
 {
   char path[PATH_SIZE];
   memset(&detail, 0, sizeof(detail));
-  text_format(path, PATH_SIZE, "/api/v1/projects/%s", slug);
+  text_format(path, PATH_SIZE, DETAIL_PATH, slug);
   ui_busy("Project", "Loading project...");
   json_init(&json, api_detail, &detail);
   uint8_t result = net_get_json(path, &json);

@@ -106,11 +106,11 @@ class Api:
             self.json("POST", "/api/v1/auth/verify-email", {"token": token}, cookie=cookie)
         return cookie
 
-    def project(self, cookie, slug, kind, summary, parent=""):
+    def project(self, cookie, slug, kind, summary, parent="", category="other"):
         status, data, _ = self.request("GET", f"/api/v1/projects/{slug}")
         if status != 404:
             return
-        body = {"slug": slug, "name": slug.replace("-", " ").title(), "kind": kind, "category": "other", "summary": summary,
+        body = {"slug": slug, "name": slug.replace("-", " ").title(), "kind": kind, "category": category, "summary": summary,
                 "description": "", "license": "MIT", "source_url": "", "parent": parent}
         self.json("POST", "/api/v1/projects", body, cookie=cookie, ok=(201, 409))
 

@@ -88,6 +88,11 @@ def all(fx, results, build):
          press("enter") + shot("02_done") + press("enter") + quit_app(),
          "save": ["HELLO"],
          "check": lambda c: c.same("HELLO", fx["hello"]) + db_has(c.db(), "hello", "1.0.0")},
+        {"name": "category_filter",
+         "steps": wait() + press("graph") + shot("01_picker") + press("down", "enter") + shot("02_games") +
+         press("enter", "enter") + shot("03_done") + press("enter") + quit_app(),
+         "save": ["HELLO"],
+         "check": lambda c: c.same("HELLO", fx["hello"]) + db_has(c.db(), "hello", "1.0.0")},
         {"name": "install_dep",
          "steps": wait() + open_project("libuser") + shot("01_detail") + press("enter") + shot("02_review") +
          press("enter") + shot("02_done") + press("enter") + shot("03_detail") + press("clear", "zoom") + shot("04_installed") + quit_app(),

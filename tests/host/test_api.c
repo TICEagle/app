@@ -239,6 +239,40 @@ static void hostile(void)
   free(doc);
 }
 
+static void calculator_view(void)
+{
+  project_list_t list = {0};
+  CHECK(run(api_list, &list,
+            "{\"projects\":[{\"slug\":\"solver\",\"name\":\"Solver\",\"kind\":\"asm\",\"summary\":\"Solves.\","
+            "\"latest_version\":null},{\"slug\":\"pong\",\"name\":\"Pong\",\"kind\":\"basic\",\"summary\":\"\","
+            "\"latest_version\":\"2.0.0\"}],\"more\":false}"));
+  CHECK(list.count == 2 && !list.more && list.items[0].kind == KIND_ASM && !list.items[0].latest[0]);
+  CHECK(!strcmp(list.items[1].latest, "2.0.0") && !strcmp(list.items[0].summary, "Solves."));
+  detail_t d = {0};
+  CHECK(run(api_detail, &d,
+            "{\"slug\":\"solver\",\"name\":\"Solver\",\"kind\":\"asm\",\"owner\":\"alice\",\"summary\":\"Solves.\","
+            "\"latest\":null,\"capabilities\":null,\"taken_down_at\":null}"));
+  CHECK(!strcmp(d.owner, "alice") && !d.latest[0] && !d.caps && !d.taken_down && d.kind == KIND_ASM);
+
+  char path[192];
+  api_list_path(path, sizeof(path), 2, "", "", "");
+  CHECK(!strcmp(path, "/api/v1/projects?view=calculator&page=2&kind=&category=&q="));
+  api_list_path(path, sizeof(path), 1, "basic", "math", "geo dash:2");
+  CHECK(!strcmp(path, "/api/v1/projects?view=calculator&page=1&kind=basic&category=math&q=geo%20dash%3A2"));
+  char query[33];
+  memset(query, ' ', 32);
+  query[32] = 0;
+  api_list_path(path, sizeof(path), 65535, "library", "programming", query);
+  CHECK(strlen(path) == 80 + 96);
+  CHECK(!strcmp(path + strlen(path) - 6, "%20%20"));
+  char small[70];
+  api_list_path(small, sizeof(small), 1, "library", "programming", query);
+  CHECK(strlen(small) < sizeof(small) && !strncmp(small, "/api/v1/projects?view=calculator", 32));
+  char tiny[8];
+  api_list_path(tiny, sizeof(tiny), 1, "", "", "abc");
+  CHECK(strlen(tiny) == sizeof(tiny) - 1);
+}
+
 void test_api(void)
 {
   hostile();
@@ -247,6 +281,7 @@ void test_api(void)
   CHECK(!hex_decode("abc", out, 4, &len));
   CHECK(!hex_decode("0102030405", out, 4, &len));
   list_and_detail();
+  calculator_view();
   install();
   max_install();
   updates();

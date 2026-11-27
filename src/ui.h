@@ -62,5 +62,6 @@ bool ui_confirm(uint8_t tone, const char *title, const char *text, const char *y
 void ui_busy(const char *title, const char *text);
 void ui_progress(uint32_t done, uint32_t total);
 bool ui_edit(const char *title, const char *hint, char *text, size_t size);
+uint8_t ui_pick(const char *title, const char *const *labels, uint8_t count, uint8_t chosen);
 
 #endif

@@ -31,6 +31,8 @@
 #define LABEL_SIZE 32
 #define KEY_TABLE 64
 #define WORK_SIZE 80
+#define CHOICE_H 12
+#define CHOICE_MARK 2
 
 static int bar_y;
 
@@ -165,6 +167,42 @@ bool ui_edit(const char *title, const char *hint, char *text, size_t size)
         work[n] = c;
         work[n + 1] = 0;
       }
+    }
+  }
+}
+
+static void draw_choices(int y, const char *const *labels, uint8_t count, uint8_t chosen)
+{
+  int x = PANEL_X + PAD, h = count * CHOICE_H, row = y;
+  ui_fill(x, y, TEXT_W, h, C_SURFACE);
+  for (uint8_t i = 0; i < count; i++, row += CHOICE_H) {
+    if (i == chosen) {
+      ui_fill(x, row, TEXT_W, CHOICE_H, C_SELECT);
+      ui_fill(x, row, CHOICE_MARK, CHOICE_H, C_ACCENT);
+    }
+    ui_text(x + PAD / 2, row + 2, i == chosen ? C_FG : C_MUTED, labels[i], TEXT_W - PAD);
+  }
+  gfx_BlitRectangle(gfx_buffer, (uint24_t)x, (uint8_t)y, TEXT_W, (uint24_t)h);
+}
+
+uint8_t ui_pick(const char *title, const char *const *labels, uint8_t count, uint8_t chosen)
+{
+  uint8_t start = chosen;
+  int h = count * CHOICE_H, y = panel(TONE_ACCENT, title, "", h + GAP + ACTIONS);
+  int x = PANEL_X + PAD + ui_keycap(PANEL_X + PAD, y + h + GAP, "enter", "Show", C_ACCENT) + ACTION_GAP;
+  bar_y = 0;
+  ui_keycap(x, y + h + GAP, "clear", "Cancel", C_MUTED);
+  ui_show();
+  for (;;) {
+    draw_choices(y, labels, count, chosen);
+    switch (ui_key()) {
+    case sk_Up: chosen = chosen ? chosen - 1 : count - 1; break;
+    case sk_Down: chosen = chosen + 1 < count ? chosen + 1 : 0; break;
+    case sk_Enter:
+    case sk_2nd: return chosen;
+    case sk_Clear:
+    case sk_Graph:
+    case sk_Mode: return start;
     }
   }
 }

@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "api.h"
+#include "text.h"
 
 #define SEEN_SLUG 1
 #define SEEN_VERSION 2
@@ -18,6 +19,7 @@
 static const char *const cap_names[] = {"flash_write", "delete_vars", "ram_reset", "usb",
                                         "network",     "inline_asm",  "link"};
 static const char *const kind_names[] = {"basic", "asm", "library", "appvar"};
+static const char hex_digits[] = "0123456789ABCDEF";
 
 uint8_t cap_bit(const char *name)
 {
@@ -119,6 +121,23 @@ static bool copy_value(const json_t *json, char *dst, size_t size, bool exact)
   memcpy(dst, json->value, n);
   dst[n] = 0;
   return true;
+}
+
+void api_list_path(char *path, size_t size, uint16_t page, const char *kind, const char *category, const char *query)
+{
+  size_t n =
+      text_format(path, size, "/api/v1/projects?view=calculator&page=%u&kind=%s&category=%s&q=", page, kind, category);
+  if (n >= size) return;
+  for (; *query && n + 3 < size; query++) {
+    char c = *query;
+    if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '.') path[n++] = c;
+    else {
+      path[n++] = '%';
+      path[n++] = hex_digits[(uint8_t)c >> 4];
+      path[n++] = hex_digits[c & 15];
+    }
+  }
+  path[n] = 0;
 }
 
 bool api_list(json_t *json, uint8_t event)

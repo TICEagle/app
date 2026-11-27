@@ -64,7 +64,7 @@ def base(api, fx, binary):
     api.publish(alice, "libuser", "1.0.0", [(fx["libuser"], "main")])
     api.project(alice, "libpal", "asm", "Also uses testlib.")
     api.publish(alice, "libpal", "1.0.0", [(fx["libpal"], "main")])
-    api.project(alice, "hello", "basic", "Says hello.")
+    api.project(alice, "hello", "basic", "Says hello.", category="games")
     api.publish(alice, "hello", "1.0.0", [(fx["hello"], "main")])
     api.project(alice, "cleaner", "asm", "Deletes variables.")
     api.publish(alice, "cleaner", "1.0.0", [(fx["cleaner"], "main")])

@@ -9,7 +9,8 @@
 
 #define QUERY_SIZE 33
 #define PATH_SIZE 192
-#define TITLE_SIZE 48
+#define TITLE_SIZE 64
+#define RIGHT_SIZE 12
 #define STRIP_Y 25
 #define STRIP_GAP 4
 #define CHIP_PAD 4
@@ -19,37 +20,25 @@
 #define NAME_X 12
 #define EMPTY_Y 104
 #define KINDS 5
+#define CATEGORIES 9
 
 static const char *const kind_filters[KINDS] = {"", "basic", "asm", "library", "appvar"};
 static const char *const kind_labels[KINDS] = {"All", "BASIC", "ASM/C", "Libraries", "AppVars"};
 static const char *const kind_tags[] = {"", "BASIC", "ASM/C", "Library", "AppVar"};
+static const char *const category_filters[CATEGORIES] = {
+    "", "games", "math", "science", "study", "programming", "graphics", "utilities", "other"};
+static const char *const category_labels[CATEGORIES] = {"All",         "Games",    "Math",      "Science", "Study",
+                                                        "Programming", "Graphics", "Utilities", "Other"};
 static char query[QUERY_SIZE];
-static uint8_t kind;
+static uint8_t kind, category;
 static uint16_t page = 1;
 static uint8_t selected, top;
-
-static void append_query(char *path)
-{
-  static const char hex[] = "0123456789ABCDEF";
-  char *o = path + strlen(path);
-  for (const char *s = query; *s; s++) {
-    char c = *s;
-    if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '.') *o++ = c;
-    else {
-      *o++ = '%';
-      *o++ = hex[(uint8_t)c >> 4];
-      *o++ = hex[c & 15];
-    }
-  }
-  *o = 0;
-}
 
 static bool load(void)
 {
   char path[PATH_SIZE];
   project_list_t *list = &ws.list;
-  text_format(path, PATH_SIZE, "/api/v1/projects?page=%u&kind=%s&q=", page, kind_filters[kind]);
-  append_query(path);
+  api_list_path(path, PATH_SIZE, page, kind_filters[kind], category_filters[category], query);
   memset(list, 0, sizeof(*list));
   ws_holds = WS_LIST;
   selected = top = 0;
@@ -84,11 +73,14 @@ static void draw_item(const list_item_t *item, int y, bool chosen)
 
 static void draw(void)
 {
-  static const char *const labels[5] = {"Search", "Kind", "Updates", "Settings", "Quit"};
-  char title[TITLE_SIZE], right[TITLE_SIZE];
+  static const char *const labels[5] = {"Search", "Kind", "Updates", "Settings", "Category"};
+  char title[TITLE_SIZE], right[RIGHT_SIZE];
   project_list_t *list = &ws.list;
   uint8_t count = ws_holds == WS_LIST ? list->count : 0;
-  text_format(title, sizeof(title), query[0] ? "Search \"%s\"" : "Browse", query);
+  if (query[0])
+    text_format(title, sizeof(title), category ? "Search \"%s\" in %s" : "Search \"%s\"", query,
+                category_labels[category]);
+  else strcpy(title, category ? category_labels[category] : "Browse");
   text_format(right, sizeof(right), "Page %u", page);
   ui_screen(title, right);
   draw_strip();
@@ -96,7 +88,7 @@ static void draw(void)
   if (!count)
     ui_empty(EMPTY_Y, "No projects found",
              query[0] ? "Nothing matches this search. Press y= to search again."
-                      : "Press window to show another kind.");
+                      : "Press window for another kind or graph for another category.");
   for (uint8_t i = 0; i < VISIBLE && top + i < count; i++)
     draw_item(&list->items[top + i], LIST_Y + i * ROW_H, top + i == selected);
   ui_scrollbar(LIST_Y, VISIBLE * ROW_H, top, VISIBLE, count);
@@ -156,9 +148,17 @@ uint8_t browse_run(void)
       page = 1;
       load();
       break;
+    case sk_Graph: {
+      uint8_t picked = ui_pick("Category", category_labels, CATEGORIES, category);
+      if (picked != category) {
+        category = picked;
+        page = 1;
+        load();
+      }
+      break;
+    }
     case sk_Zoom: return SCREEN_INSTALLED;
     case sk_Trace: return SCREEN_SETTINGS;
-    case sk_Graph:
     case sk_Clear:
     case sk_Mode: return SCREEN_QUIT;
     }
